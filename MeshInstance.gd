@@ -29,8 +29,8 @@ func _generateWorld():
 	var plane_mesh = PlaneMesh.new()
 	plane_mesh.size = Vector2(800, 800)
 	
-	plane_mesh.subdivide_depth = 50
-	plane_mesh.subdivide_width = 50
+	plane_mesh.subdivide_depth = 400
+	plane_mesh.subdivide_width = 400
 	
 	var surface_tool = SurfaceTool.new()
 	surface_tool.create_from(plane_mesh, 0)
@@ -54,6 +54,7 @@ func _generateWorld():
 	surface_tool.generate_normals()
 	
 	mesh = surface_tool.commit()
+	create_trimesh_collision()
 
 func _get_tile_index(height):
 	if height < -0:

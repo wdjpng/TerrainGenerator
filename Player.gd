@@ -1,14 +1,28 @@
 extends KinematicBody
 
 # Player movement speed
-export var speed = 400
+var speed = 700
+var sprintSpeedMultiplier = 1.4
 
 func _physics_process(delta):
 	# Get player input
-	var direction: Vector2
+	var direction: Vector3
+	var cameraAim = $Head/Camera.get_global_transform().basis
 	
-	direction.x =  Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
-	direction.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+	if Input.is_action_pressed("ui_down"):
+		direction += Vector3(cameraAim.z[0], 0,  cameraAim.z[2])
+	if Input.is_action_pressed("ui_up"):
+		direction -= Vector3(cameraAim.z[0], 0,  cameraAim.z[2])
+	if Input.is_action_pressed("ui_left"):
+		direction -= Vector3(cameraAim.x[0], 0,  cameraAim.x[2])
+	if Input.is_action_pressed("ui_right"):
+		direction += Vector3(cameraAim.x[0], 0,  cameraAim.x[2])
+	if Input.is_action_pressed("fly_up"):
+		direction += Vector3(0,1,0)
+	if Input.is_action_pressed("fly_down"):
+		direction -= Vector3(0,1,0)
+		
+	
 	
 	# If input is digital, normalize it for diagonal movement
 	if abs(direction.x) == 1 and abs(direction.y) == 1:
@@ -17,6 +31,6 @@ func _physics_process(delta):
 	# Apply movement
 	var movement = speed * direction * delta
 	
-	if Input.is_action_pressed("shift"):
-		movement*=2
-	move_and_collide(Vector3(direction.x, 0, direction.y))
+	if Input.is_action_pressed("sprint"):
+		movement*=sprintSpeedMultiplier
+	move_and_collide(movement)
