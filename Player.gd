@@ -1,8 +1,8 @@
 extends KinematicBody
 
 # Player movement speed
-var speed = 700
-var sprintSpeedMultiplier = 1.4
+var speed = 400
+var sprintSpeedMultiplier = 3
 
 func _physics_process(delta):
 	# Get player input
