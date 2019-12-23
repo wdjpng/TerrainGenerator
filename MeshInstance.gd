@@ -7,12 +7,6 @@ var noiseOffset = 0
 
 var open_simplex_noise
 
-const TILES = {
-	'grass_higher': 1,
-	'grass_lower': 0,
-	'rock': 3,
-	'water': 2
-}
 	
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -63,13 +57,7 @@ func _generateWorld():
 	surface_tool.generate_normals()
 	
 	mesh = surface_tool.commit()
+	set_surface_material(0, load("res://terrain.material"));
 	create_trimesh_collision()
 
-func _get_tile_index(height):
-	if height < -0:
-		return TILES.water
-	if height < 0.3 :
-		return TILES.grass_lower
-	if height < 0.5 :
-		return TILES.grass_higher
-	return TILES.rock
+
