@@ -1,8 +1,8 @@
+
 extends MeshInstance
 
 # Declare member variables here. Examples:
-var height = 500
-var width = 500
+var height = 60
 var noiseOffset = 0
 
 var open_simplex_noise
@@ -14,24 +14,17 @@ func _ready():
 	open_simplex_noise = OpenSimplexNoise.new()
 	open_simplex_noise.seed = randi()
 	
-	open_simplex_noise.octaves = 5
-	open_simplex_noise.period = 3000
-	open_simplex_noise.persistence = 0.4
+	open_simplex_noise.octaves = 6
+	open_simplex_noise.period = 80
 
 	
-	_generateWorld()
+	#_generateWorld()
 
 func _heightTransformer(height):
-	height = (height+1)/2.0
-	if height < 0.3:
-		return pow(0.4 -height, -1.5) * 0.007
-	if height < 0.6:
-		return height+0.16
-		
-	return height*10- 5.24
+	return height
 func _generateWorld():
 	var plane_mesh = PlaneMesh.new()
-	plane_mesh.size = Vector2(8000, 8000)
+	plane_mesh.size = Vector2(512, 512)
 	
 	plane_mesh.subdivide_depth = 100
 	plane_mesh.subdivide_width = 100

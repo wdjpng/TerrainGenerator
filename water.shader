@@ -1,7 +1,7 @@
 shader_type spatial;
 
 uniform vec4 out_color : hint_color = vec4(0.0, 0.2, 1.0, 1.0);
-uniform float amount : hint_range(0.2, 5) = 0.8;
+uniform float amount : hint_range(0.2, 1) = 0.8;
 uniform float beerfactor : hint_range(0, 1.0) = 0.2;
 
 float generateOffset(float x, float z, float val1, float val2, float time){
