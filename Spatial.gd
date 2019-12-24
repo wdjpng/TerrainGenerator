@@ -2,7 +2,7 @@ tool
 extends Spatial
 
 const chunk_size = 128
-const chunk_amount = 16
+var chunk_amount =  16
 
 var noise
 var chunks = {}
@@ -19,6 +19,10 @@ func _ready():
 	noise.persistence = 0.4
 	
 	thread = Thread.new()
+	
+	if Engine.is_editor_hint():
+		chunk_amount = 0
+		add_chunk(0, 0)
 	
 func add_chunk(x, z):
 	var key = str(x) + "," + str(z)
@@ -55,6 +59,9 @@ func get_chunk(x, z):
 	return null
 
 func _process(delta):
+	if Engine.is_editor_hint():
+		return
+		
 	update_chunks()
 	clean_up_chunks()
 	reset_chunks()
