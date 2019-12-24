@@ -2,7 +2,7 @@ tool
 extends Spatial
 
 const chunk_size = 128
-var chunk_amount =  10
+var chunk_amount =  16
 
 var noise
 var chunks = {}
@@ -72,31 +72,12 @@ func update_chunks():
 	var p_x = int(player_translation.x) / chunk_size
 	var p_z = int(player_translation.z) / chunk_size
 	
-	for distanceFromPlayer in range(0, chunk_amount):
-		for x in range(0, chunk_amount):
-			for z in range(0, chunk_amount):
-				var currentDistancefromPlayer = sqrt(pow(x, 2) + pow(z, 2))
-				print(currentDistancefromPlayer)
-				if currentDistancefromPlayer > distanceFromPlayer and distanceFromPlayer < chunk_amount + 1:
-					add_chunk(-x, -z)
-					var chunk0 = get_chunk(-x, -z)
-					if chunk0 != null:
-						chunk0.should_remove = false
-						
-					add_chunk(x, -z)
-					var chunk1 = get_chunk(-x, z)
-					if chunk1 != null:
-						chunk1.should_remove = false
-					
-					add_chunk(-x, z)
-					var chunk2 = get_chunk(x, -z)
-					if chunk2 != null:
-						chunk2.should_remove = false
-						
-					add_chunk(x, z)
-					var chunk3 = get_chunk(x, z)
-					if chunk3 != null:
-						chunk3.should_remove = false
+	for x in range(p_x - chunk_amount * 0.5, p_x + chunk_amount * 0.5):
+		for z in range(p_z - chunk_amount * 0.5, p_z + chunk_amount * 0.5):
+			add_chunk(x, z)
+			var chunk = get_chunk(x, z)
+			if chunk != null:
+				chunk.should_remove = false
 				
 func clean_up_chunks():
 	for key in chunks:
