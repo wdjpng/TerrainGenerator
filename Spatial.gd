@@ -1,71 +1,84 @@
 tool
 extends Spatial
 
-# Declare member variables here. Examples:
-var noiseOffset = 0
+const chunk_size = 128
+const chunk_amount = 16
 
-var open_simplex_noise
-export (float, 0, 100) var height = 60
-export (float, -1, 1) var deepWaterTreshold = -0.8
-export (float, -1, 1) var waterTreshold = -0.6
+var noise
+var chunks = {}
+var unready_chunks = {}
+var thread
 
-export (float, 0, 5) var deepWaterSlope = 0.1
-export (float, 0, 5) var waterSlope = 1
-export (float, 0, 5) var landSlope = 1
-
-# Called when the node enters the scene tree for the first time.
 func _ready():
 	randomize()
-	open_simplex_noise = OpenSimplexNoise.new()
-	open_simplex_noise.seed = randi()
+	noise = OpenSimplexNoise.new()
+	noise.seed = randi()
 	
-	open_simplex_noise.octaves = 6
-	open_simplex_noise.period = 80
-	open_simplex_noise.persistence = 0.4
+	noise.octaves = 6
+	noise.period = 80
+	noise.persistence = 0.4
 	
-	_generateWorld()
+	thread = Thread.new()
+	
+func add_chunk(x, z):
+	var key = str(x) + "," + str(z)
+	
+	if chunks.has(key) or unready_chunks.has(key):
+		return
+		
+	if not thread.is_active():
+		thread.start(self, "load_chunk", [thread, x, z])
+		unready_chunks[key] = 1
+		
+func load_chunk(arr):
+	var thread = arr[0]
+	var x = arr[1]
+	var z = arr[2]
+	
+	var chunk = Chunk.new(noise, x * chunk_size, z * chunk_size, chunk_size)
+	chunk.translation = Vector3(x * chunk_size, 0, z*chunk_size)
+	
+	call_deferred("load_done", chunk, thread)
+	
+func load_done(chunk, thread):
+	add_child(chunk)
+	var key = str(chunk.x / chunk_size) + "," + str(chunk.z / chunk_size)
+	chunks[key] = chunk
+	unready_chunks.erase(key)
+	thread.wait_to_finish()
 
-func _heightTransformer(height):
-	height-=waterTreshold
-	if height < -(waterTreshold-deepWaterTreshold): 
-		return height * deepWaterSlope + (deepWaterTreshold - waterTreshold) * (waterSlope - deepWaterSlope)
-	if height < 0:
-		return height * waterSlope;
-	else :
-		#is on land
-		return height * landSlope
-func _generateWorld():
-	var plane_mesh = PlaneMesh.new()
-	plane_mesh.size = Vector2(128, 128)
+func get_chunk(x, z):
+	var key = str(x) + "," + str(z)
+	if chunks.has(key):
+		return chunks.get(key)
 	
-	plane_mesh.subdivide_depth = 500
-	plane_mesh.subdivide_width = 500
-	
-	var surface_tool = SurfaceTool.new()
-	surface_tool.create_from(plane_mesh, 0)
-	
-	var array_plane = surface_tool.commit()
-	var data_tool = MeshDataTool.new()
-	data_tool.create_from_surface(array_plane, 0)
-	
-	for i in range(data_tool.get_vertex_count()):
-		var vertex = data_tool.get_vertex(i)
-		vertex.y = _heightTransformer(open_simplex_noise.get_noise_3d(vertex.x, noiseOffset, vertex.z)) * height 
-		data_tool.set_vertex(i, vertex)
-	
-	for i in range(array_plane.get_surface_count()):
-		array_plane.surface_remove(i)
-	
-	data_tool.commit_to_surface(array_plane)
-	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-	surface_tool.create_from(array_plane, 0)
-	surface_tool.generate_normals()
-	
-	var mesh_instance = MeshInstance.new();
-	mesh_instance.mesh = surface_tool.commit();
-	
-	mesh_instance.set_surface_material(0, load("res://sand.material"));
-	mesh_instance.create_trimesh_collision()
-	
-	add_child(mesh_instance);
+	return null
 
+func _process(delta):
+	update_chunks()
+	clean_up_chunks()
+	reset_chunks()
+
+func update_chunks():
+	var player_translation = $Player.translation
+	
+	var p_x = int(player_translation.x) / chunk_size
+	var p_z = int(player_translation.z) / chunk_size
+	
+	for x in range(p_x - chunk_amount * 0.5, p_x + chunk_amount * 0.5):
+		for z in range(p_z - chunk_amount * 0.5, p_z + chunk_amount * 0.5):
+			add_chunk(x, z)
+			var chunk = get_chunk(x, z)
+			if chunk != null:
+				chunk.should_remove = false
+				
+func clean_up_chunks():
+	for key in chunks:
+		var chunk = chunks[key]
+		if chunk.should_remove:
+			chunk.queue_free()
+			chunks.erase(key)
+
+func reset_chunks():
+	for key in chunks:
+		chunks[key].should_remove = true
