@@ -2,7 +2,7 @@ tool
 extends Spatial
 
 const chunk_size = 128
-var chunk_amount =  16
+var chunk_amount =  2
 
 var noise
 var chunks = {}
@@ -21,8 +21,7 @@ func _ready():
 	thread = Thread.new()
 	
 	if Engine.is_editor_hint():
-		chunk_amount = 0
-		add_chunk(0, 0)
+		chunk_amount = 1
 	
 func add_chunk(x, z):
 	var key = str(x) + "," + str(z)
@@ -59,9 +58,6 @@ func get_chunk(x, z):
 	return null
 
 func _process(delta):
-	if Engine.is_editor_hint():
-		return
-		
 	update_chunks()
 	clean_up_chunks()
 	reset_chunks()
@@ -71,13 +67,17 @@ func update_chunks():
 	
 	var p_x = int(player_translation.x) / chunk_size
 	var p_z = int(player_translation.z) / chunk_size
-	
-	for x in range(p_x - chunk_amount * 0.5, p_x + chunk_amount * 0.5):
-		for z in range(p_z - chunk_amount * 0.5, p_z + chunk_amount * 0.5):
-			add_chunk(x, z)
-			var chunk = get_chunk(x, z)
-			if chunk != null:
-				chunk.should_remove = false
+
+	for distance in range(0, chunk_amount):
+		for x in range(-100, 100):
+			for z in range(-100, 100):
+				var curDistance = sqrt(pow(x - p_x, 2) + pow(z - p_z, 2));
+				
+				if curDistance >= distance and distance + 1 > curDistance:
+					add_chunk(x, z)
+					var chunk = get_chunk(x, z)
+					if chunk != null:
+						chunk.should_remove = false
 				
 func clean_up_chunks():
 	for key in chunks:

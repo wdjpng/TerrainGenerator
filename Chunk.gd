@@ -40,7 +40,7 @@ func _heightTransformer(height):
 		
 func _generateWorld():
 	var plane_mesh = PlaneMesh.new()
-	plane_mesh.size = Vector2(128, 128)
+	plane_mesh.size = Vector2(chunk_size, chunk_size)
 	
 	plane_mesh.subdivide_depth = chunk_size * 0.5
 	plane_mesh.subdivide_width = chunk_size * 0.5
